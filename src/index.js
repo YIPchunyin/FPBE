@@ -4,13 +4,16 @@ const cors = require("cors");
 const path = require("path");
 const connectToDb = require("./db");
 const multer = require("multer");
-const s3 = require("../src/middleware/aws-credentials");
+const s3 = require("./middleware/aws-credentials");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
+const router = express.Router();
 // const { Server } = require("http");
 require("dotenv").config();
 
 const app = express();
+app.use(cors())
+app.options('*', cors()); // 确保所有 OPTIONS 请求都能正确响应
 const port = process.env.PORT || 3001;
 //connect to DB
 connectToDb();
@@ -18,7 +21,8 @@ connectToDb();
 //
 //中間件
 //
-app.use(cors());
+// 允许来自特定来源的请求
+
 // 使用 body-parser 中間件
 app.use(bodyParser.urlencoded({ extended: true })); // 設置 extended 為 true
 app.use(bodyParser.json());
@@ -31,6 +35,12 @@ app.use("/users", userRoutes);
 //插入文章路由器模版
 app.use("/posts", postRoutes);
 
+
+// 处理预检请求
+router.options('*', cors());
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 // 用圖像回應的路由
 app.get("/api/:img", (req, res) => {
   const { img } = req.params;

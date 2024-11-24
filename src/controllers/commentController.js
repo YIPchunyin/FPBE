@@ -19,7 +19,7 @@ class CommentController {
 
   // 獲取帖子的評論：/router.get '/'
   static async getPostComments(req, res) {
-    const { postId, page, limit} = req.params;
+    const { postId, page, limit } = req.params;
     try {
       // 计算跳过的文档数量
       const skip = (page - 1) * limit;
@@ -29,24 +29,34 @@ class CommentController {
         .skip(skip)
         .limit(parseInt(limit))
         .populate("user_id", "username name img_path name role");
-  
+
       // 检查用户是否已登录
       let userId = req.userId; // 假设 userId 已经在请求中设置
       const user = await mongoose.model("User").findById(userId);
       const userCommentStatus = {};
-  
       if (userId) {
         // 对每条评论，检查用户是否点赞或点踩
         for (let comment of comments) {
-          let permission = user.role === "admin" || comment.user_id._id.toString() === userId || post.user_id.toString() === userId;
-          userCommentStatus[comment._id] = {
-            hasLiked: comment.likingUsers?.has(userId) || false,
-            hasDisliked: comment.dislikingUsers?.has(userId) || false,
-            permission
+          let permission = false;
+          if (user) {
+            permission = user.role === "admin" || comment.user_id._id.toString() === userId || post.user_id.toString() === userId;
+            userCommentStatus[comment._id] = {
+              hasLiked: comment.likingUsers?.has(userId) || false,
+              hasDisliked: comment.dislikingUsers?.has(userId) || false,
+              permission
+            }
+          }
+          else {
+            userCommentStatus[comment._id] = {
+              hasLiked: false,
+              hasDisliked: false,
+              permission
+            }
+
           };
         }
       }
-  
+
       // 格式化评论，添加用户状态
       const formattedComments = comments.map(comment => ({
         ...formatComment(comment),
@@ -55,7 +65,7 @@ class CommentController {
         dislikes: comment.dislikingUsers.size,
         permission: userCommentStatus[comment._id]?.permission || false,
       }));
-  
+
       res.json({
         comments: formattedComments,
         currentPage: parseInt(page),
@@ -67,8 +77,8 @@ class CommentController {
       res.status(500).json({ error: error.message });
     }
   }
-  
-  
+
+
   //////提交評論
   //////router.post('/:postId/comments',
   static async createComment(req, res) {

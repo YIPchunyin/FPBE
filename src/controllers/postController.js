@@ -93,7 +93,7 @@ class PostController {
       const { postId } = req.params;
       const userId = req.userId;
       //找出该userid的数据
-      const user = await mongoose.model("User").findById(userId);
+
       let post = await Post.findById(postId).populate(
         "user_id",
         "username name img_path role"
@@ -102,10 +102,16 @@ class PostController {
         return res.status(404).json({ message: "Post not found" });
       }
       let permission = false;
-      if (post.user_id._id.toString() === userId || user.role === "admin") {
-        permission = true;
+      const user = await mongoose.model("User").findById(userId);
+      //如果找到user
+      if (user) {
+        if (post.user_id._id.toString() === userId || user.role === "admin") {
+          permission = true;
+        }
       }
-      res.json({ post, permission, user });
+      const postaction = await PostActions.findOne({ postId: post._id });
+      await postaction.incrementViews(post._id);
+      res.json({ post, permission });
     } catch (error) {
       console.error("Error fetching post by id:", error);
       res.status(500).json({ error: error.message });
@@ -159,14 +165,14 @@ class PostController {
       postId = new mongoose.Types.ObjectId(postId);
       const userId = req.userId;
       const user = await mongoose.model("User").findById(userId);
-      let post = await Post.findOne({ _id: postId});
+      let post = await Post.findOne({ _id: postId });
       const postacion = await PostActions.findOne({ postId: postId });
-      
+
       if (user.role !== "admin") {
-      // 檢查帖子是否存在且用戶是發帖人
+        // 檢查帖子是否存在且用戶是發帖人
         post = await Post.findOne({ _id: postId, user_id: userId });
         if (!post) {
-          return res.json({ status: 404,message: "Post not found or unauthorized" });
+          return res.json({ status: 404, message: "Post not found or unauthorized" });
         }
       }
       // 刪除帖子
