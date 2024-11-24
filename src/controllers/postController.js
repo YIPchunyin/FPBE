@@ -8,9 +8,23 @@ const nodejieba = require('nodejieba');
 const mongoose = require("mongoose");
 const PostActions = require("../models/PostActions");
 
-
-
 class PostController {
+  static async test(req, res) {
+    //獲取所有post
+    const posts = await Post.find();
+    //遍歷所有post
+    for (let i = 0; i < posts.length; i++) {
+      //找出postid對應的 action
+      const actions = await PostActions.findOne({ postId: posts[i]._id });
+      console.log('after', actions.createdAt)
+      actions.createdAt = posts[i].Creation_time;
+      console.log('before', actions.createdAt)
+
+      //更新action
+      await actions.save();
+    }
+    res.json({ message: "test success" });
+  }
   // 睇posts
   static async getAllPosts(_, res) {
     try {
@@ -58,6 +72,7 @@ class PostController {
         title,
         img_path,
         content,
+        short_content: content.replace(/<[^>]+>/g, ""),
         user_id,
         Creation_time: new Date(),
       });
@@ -67,6 +82,7 @@ class PostController {
       const savedPost = await newPost.save();
       const newPostAction = new PostActions({
         postId: savedPost._id,
+        createdAt: new Date(),
       });
       await newPostAction.save()
       // Log the saved post
@@ -98,6 +114,7 @@ class PostController {
         "user_id",
         "username name img_path role"
       );
+      console.log(post)
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
@@ -141,8 +158,8 @@ class PostController {
       post.title = title || post.title;
       post.img_path = img_path || post.img_path;
       post.content = content || post.content;
-      post.Update_time = new Date();
-
+      post.short_content = content.replace(/<[^>]+>/g, ""),
+        post.Update_time = new Date();
       const updatedPost = await post.save();
       const populatedPost = await Post.findById(updatedPost._id).populate(
         "user_id",
@@ -268,7 +285,7 @@ class PostController {
       const regex = new RegExp(keyword, 'i');  // 'i' 表示不区分大小写
       // 查询符合条件的帖子  模糊查询
       const posts = await Post.find(
-        { $or: [{ title: regex }, { content: regex }] }
+        { $or: [{ title: regex }, { short_content: regex }] }
       )
         .sort({ Creation_time: -1 })  // 按创建时间降序排序
         .populate("user_id", "username name role");  // 填充用户信息
@@ -407,6 +424,55 @@ class PostController {
     }
   }
 
+  // sort
+  static async getPostsBySort(req, res) {
+    const { sort,order } = req.params;
+    const orderNum = order === 'desc'? -1 : 1;
+    console.log(sort,orderNum)
+    let posts = null;
+    //sort: 1: 按views排序 2: 按likes排序 3: 按collections排序
+    if (sort == 'views') {
+      console.log('views')
+      posts = await PostActions.find()
+        .sort({ views: orderNum })
+        .populate("postId", "title img_path content user_id Creation_time");
+    }
+    else if (sort == 'likes') {
+      posts = await PostActions.find()
+        .sort({ likes: -1 })
+        .populate("postId", "title img_path content user_id Creation_time");
+    }
+    else if (sort == 'collections') {
+      posts = await PostActions.find()
+        .sort({ collections: orderNum })
+        .populate("postId", "title img_path content user_id Creation_time");
+    }
+    else {
+      posts = await Post.find()
+        .sort({ Creation_time: -1 })
+        .populate("user_id", "username name role")
+        .select("-__v -content")
+      return res.json(posts);
+    }
+    const jsonPosts = posts.map(post => {
+      if (!post.postId) {
+        // console.warn(`Missing postId for post: ${JSON.stringify(post)}`);
+        return null;
+      }
+      return {
+        _id: post.postId._id,
+        title: post.postId.title,
+        img_path: post.postId.img_path,
+        content: post.postId.content,
+        user_id: post.postId.user_id,
+        Creation_time: new Date(post.postId.Creation_time).toLocaleString("en-US", {
+          timeZone: "Asia/Shanghai",
+        }),
+      };
+    }).filter(result => result !== null); // 过滤掉无效的结果
+    res.json(jsonPosts);
+  }
+
   // 获取post的相关推荐
   static async getRecommendations(req, res) {
     const { postId } = req.params;
@@ -425,7 +491,7 @@ class PostController {
     // 计算该post与其他所有帖子的文本相似度
     for (let i = 0; i < posts.length; i++) {
       if (posts[i]._id.toString() !== postId) { // 排除自身
-        const similarity = calculateJaccardSimilarity(targetPost.content, posts[i].content);
+        const similarity = calculateJaccardSimilarity(targetPost.short_content, posts[i].short_content);
         similarities.push({
           index: i,
           similarity,

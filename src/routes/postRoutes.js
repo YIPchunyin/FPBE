@@ -21,7 +21,10 @@ router.get('/:postId/getPostData', extractUserId, PostController.getPostById)
 router.get('/:postId/comments/:page/:limit', extractUserId, CommentController.getPostComments)
 //获取文章通过userid
 router.get('/:userId', PostController.getPostsByUser)
-
+// 
+router.get('/test/test',PostController.test)
+// 根據排序條件查詢post
+router.get('/sort/:sort/:order', PostController.getPostsBySort)
 
 //获取文章评论数量
 router.get('/:postId/comments/count', extractUserId, CommentController.getPostCommentsCount)
