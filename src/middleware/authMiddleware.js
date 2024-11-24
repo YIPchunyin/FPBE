@@ -24,7 +24,7 @@ const validateToken =  (req, res, next) => {
 const extractUserId = (req, res, next) => {
   const authHeader = req.headers['authorization']; // 获取 Authorization 头
   if (!authHeader) {
-    req.userId = '67403660be7300000d0053b2'; // 如果没有提供 token，设置 userId 为 false
+    req.userId = '6743120ec66b000001006812'; // 如果没有提供 token，设置 userId 为 false
     return next(); // 继续处理请求
   }
 

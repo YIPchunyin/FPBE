@@ -33,6 +33,9 @@ class CommentController {
       // 检查用户是否已登录
       let userId = req.userId; // 假设 userId 已经在请求中设置
       const user = await mongoose.model("User").findById(userId);
+      //判斷找的結果是否有
+      
+
       const userCommentStatus = {};
       if (userId) {
         // 对每条评论，检查用户是否点赞或点踩
