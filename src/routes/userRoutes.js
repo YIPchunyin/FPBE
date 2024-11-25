@@ -267,6 +267,7 @@ router.put("/:userId", validateToken, async (req, res) => {
       runValidators: true,
     });
 
+    console.log('updatedUser',updatedUser)
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
