@@ -234,7 +234,7 @@ router.get("/userprofile/:userId", validateToken, async (req, res) => {
 router.put("/:userId", validateToken, async (req, res) => {
   const { userId } = req.params;
   const { name, email, introduce, img_path, password } = req.body;
-
+  console.log("input userId:", userId);
   try {
     //驗證用戶ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
