@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
   const posts = await User./*db.collection("users").*/ find(); /*.toArray()*/
   res.json(posts);
 });
-router.post("/get-user-info",validateToken,
+router.post("/get-user-info", validateToken,
   async (req, res) => {
     const userId = req.userId
     //根据用户id查询用户信息 不顯示出密碼
@@ -31,25 +31,24 @@ router.post("/get-user-info",validateToken,
       user
     });
   });
-  router.post("/get-user",
-    async (req, res) => {
-      const {userId} = req.body
-      //根据用户id查询用户信息 不顯示出密碼
-      const user = await User.findOne({ _id: userId }).select("-password");
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      //返回用户信息
-      res.json({
-        status: 200,
-        user
-      });
+router.post("/get-user",
+  async (req, res) => {
+    const { userId } = req.body
+    //根据用户id查询用户信息 不顯示出密碼
+    const user = await User.findOne({ _id: userId }).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    //返回用户信息
+    res.json({
+      status: 200,
+      user
     });
+  });
 
 // 注冊用戶
 router.post("/Create-user", async (req, res) => {
   let { username, name, password, email } = req.body;
-
   console.log("Creating user:", { username, email });
   try {
     // 验证输入
@@ -86,7 +85,7 @@ router.post("/Create-user", async (req, res) => {
 
     // 生成 JWT token
     const token = jwt.sign(
-      { userId: user._id, username: user.username }, 
+      { userId: user._id, username: user.username },
       process.env.JWT_TOKEN,
       { expiresIn: "10h" }
     );
@@ -174,6 +173,7 @@ router.get("/userprofile/:userId", validateToken, async (req, res) => {
 
     // 查找用戶
     const user = await User.findById(userId).select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -199,7 +199,8 @@ router.get("/userprofile/:userId", validateToken, async (req, res) => {
     const collectedPosts = await Post.find({ _id: { $in: collectedPostIds } })
       .select("-__v") // Exclude version field
       .populate("user_id", "username name role") // Optionally populate user information
-      .lean();
+      .lean()
+      .sort({ Creation_time: -1 });
     //格式化收藏貼文
     const formattedCollectedPosts = collectedPosts.map((post) => ({
       postId: post._id,
@@ -243,7 +244,7 @@ router.put("/:userId", validateToken, async (req, res) => {
     //確保用戶正在更新自己的信息
     if (req.userId !== userId) {
       return res
-        .json({ status:403, message: "You are not authorized to update this profile" });
+        .json({ status: 403, message: "You are not authorized to update this profile" });
     }
 
     // 查找用戶並更新字段
