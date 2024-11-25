@@ -24,6 +24,7 @@ class CommentController {
       // 计算跳过的文档数量
       const skip = (page - 1) * limit;
       // 获取评论并按时间排序
+      const post = await Post.findById(postId);
       const comments = await Comment.find({ postId })
         .sort({ Creation_time: -1 })
         .skip(skip)
