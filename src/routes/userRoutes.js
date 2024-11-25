@@ -23,7 +23,7 @@ router.post("/get-user-info",validateToken,
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // console.log("user:", user);
+    // console.log("user:", user) ;
     console.log('已有token自动登录');
     //返回用户信息
     res.json({
@@ -243,8 +243,7 @@ router.put("/:userId", validateToken, async (req, res) => {
     //確保用戶正在更新自己的信息
     if (req.userId !== userId) {
       return res
-        .status(403)
-        .json({ message: "You are not authorized to update this profile" });
+        .json({ status:403, message: "You are not authorized to update this profile" });
     }
 
     // 查找用戶並更新字段
@@ -313,17 +312,11 @@ router.post("/check-password", validateToken, async (req, res) => {
     // 比對密碼
     const isMatch = await bcrypt.compare(currentPassword, user.password);
 
-    // 返回結果
+    // 返回結果返回結果
     return res.json({ valid: isMatch });
   } catch (error) {
     console.error("Error checking password:", error);
     return res.status(500).json({ error: error.message });
   }
 });
-
-
-
-
-
-
 module.exports = router;
