@@ -432,14 +432,13 @@ class PostController {
     let posts = null;
     //sort: 1: 按views排序 2: 按likes排序 3: 按collections排序
     if (sort == 'views') {
-      console.log('views')
       posts = await PostActions.find()
-        .sort({ views: orderNum })
+        .sort({ "views": orderNum })
         .populate("postId", "title img_path content user_id Creation_time");
     }
     else if (sort == 'likes') {
       posts = await PostActions.find()
-        .sort({ likes: -1 })
+        .sort({ "likes": -1 })
         .populate("postId", "title img_path content user_id Creation_time");
     }
     else if (sort == 'collections') {
@@ -449,7 +448,7 @@ class PostController {
     }
     else {
       posts = await Post.find()
-        .sort({ Creation_time: -1 })
+        .sort({ "Creation_time": -1 })
         .populate("user_id", "username name role")
         .select("-__v -content")
       return res.json(posts);
