@@ -34,11 +34,7 @@ router.get("/:postId", extractUserId, PostController.getPostWithComments);
 // 獲取帖子的評論：/router.get '/'
 router.get("/:postId/comments", CommentController.getPostComments);
 //////提交評論
-router.post(
-  "/:postId/comments",
-  validateToken,
-  CommentController.createComment
-);
+router.post("/:postId/comments",validateToken,CommentController.createComment);
 ////刪除評論
 router.post(
   "/:postId/comments/:commentId/delete",

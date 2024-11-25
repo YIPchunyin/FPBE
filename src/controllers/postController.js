@@ -64,15 +64,15 @@ class PostController {
     try {
       const { title, img_path, content } = req.body;
       const user_id = req.userId;
-      console.log(
-        `Creating post with title: ${title}, img_path: ${img_path}, content: ${content}, user_id: ${user_id}`
-      );
-
+      // console.log(
+      //   `Creating post with title: ${title}, img_path: ${img_path}, content: ${content}, user_id: ${user_id}`
+      // );
+      const short_content = content.replace(/<[^>]+>/g, "");
       const newPost = new Post({
         title,
         img_path,
         content,
-        short_content: content.replace(/<[^>]+>/g, ""),
+        short_content,
         user_id,
         Creation_time: new Date(),
       });
@@ -114,7 +114,6 @@ class PostController {
         "user_id",
         "username name img_path role"
       );
-      console.log(post)
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
@@ -153,13 +152,13 @@ class PostController {
             .json({ message: "Post not found or unauthorized" });
         }
       }
-
+      const short_content = content.replace(/<[^>]+>/g, "");
       // 更新帖子
       post.title = title || post.title;
       post.img_path = img_path || post.img_path;
       post.content = content || post.content;
-      post.short_content = content.replace(/<[^>]+>/g, ""),
-        post.Update_time = new Date();
+      post.short_content = short_content,
+      post.Update_time = new Date();
       const updatedPost = await post.save();
       const populatedPost = await Post.findById(updatedPost._id).populate(
         "user_id",
@@ -433,12 +432,12 @@ class PostController {
     //sort: 1: 按views排序 2: 按likes排序 3: 按collections排序
     if (sort == 'views') {
       posts = await PostActions.find()
-        .sort({ "views": orderNum })
+        .sort({ views: orderNum })
         .populate("postId", "title img_path content user_id Creation_time");
     }
     else if (sort == 'likes') {
       posts = await PostActions.find()
-        .sort({ "likes": -1 })
+        .sort({ likes: -1 })
         .populate("postId", "title img_path content user_id Creation_time");
     }
     else if (sort == 'collections') {
@@ -448,7 +447,7 @@ class PostController {
     }
     else {
       posts = await Post.find()
-        .sort({ "Creation_time": -1 })
+        .sort({ Creation_time: -1 })
         .populate("user_id", "username name role")
         .select("-__v -content")
       return res.json(posts);
