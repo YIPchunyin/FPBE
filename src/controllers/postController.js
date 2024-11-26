@@ -31,8 +31,7 @@ class PostController {
       //只找出前48篇
       const posts = await Post.find()
         .sort({ Creation_time: -1 })
-        .populate("user_id", "username name role")
-        .select("-__v -content")
+        .select("_id title img_path Creation_time")
       res.json(posts);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -63,9 +62,6 @@ class PostController {
     try {
       const { title, img_path, content } = req.body;
       const user_id = req.userId;
-      // console.log(
-      //   `Creating post with title: ${title}, img_path: ${img_path}, content: ${content}, user_id: ${user_id}`
-      // );
       const short_content = content.replace(/<[^>]+>/g, "");
       const newPost = new Post({
         title,
@@ -157,7 +153,7 @@ class PostController {
       post.img_path = img_path || post.img_path;
       post.content = content || post.content;
       post.short_content = short_content,
-      post.Update_time = new Date();
+        post.Update_time = new Date();
       const updatedPost = await post.save();
       const populatedPost = await Post.findById(updatedPost._id).populate(
         "user_id",
@@ -424,9 +420,9 @@ class PostController {
 
   // sort
   static async getPostsBySort(req, res) {
-    const { sort,order } = req.params;
-    const orderNum = order === 'desc'? -1 : 1;
-    console.log(sort,orderNum)
+    const { sort, order } = req.params;
+    const orderNum = order === 'desc' ? -1 : 1;
+    console.log(sort, orderNum)
     let posts = null;
     //sort: 1: 按views排序 2: 按likes排序 3: 按collections排序
     if (sort == 'views') {
