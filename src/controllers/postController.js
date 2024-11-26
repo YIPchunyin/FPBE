@@ -32,7 +32,6 @@ class PostController {
       const posts = await Post.find()
         .sort({ Creation_time: -1 })
         .populate("user_id", "username name role")
-        .limit(48)
         .select("-__v -content")
       res.json(posts);
     } catch (error) {

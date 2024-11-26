@@ -21,7 +21,7 @@ router.post("/get-user-info", validateToken,
     //根据用户id查询用户信息 不顯示出密碼
     const user = await User.findOne({ _id: userId }).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.json({ status: 404, message: "User not found" });
     }
     // console.log("user:", user) ;
     console.log('已有token自动登录');
