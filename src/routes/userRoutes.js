@@ -114,7 +114,7 @@ router.post(
     let { usernameOrEmail, password } = req.body;
     try {
       if (!usernameOrEmail || !password) {
-        return res.status(400).json({ message: "用户名或密码不能为空" });
+        return res.json({ status: 400, message: "用户名或密码不能为空" });
       }
 
       const user = await User./*db.collection("users").*/ findOne({
@@ -122,12 +122,12 @@ router.post(
       });
 
       if (!user) {
-        return res.status(401).json({ message: "用户名不存在" });
+        return res.json({ status: 401, message: "用戶名不存在" });
       }
       //驗證
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(401).json({ message: "密码错误" });
+        return res.json({ status: 401, message: "密码错误" });
       }
 
       //試token key
@@ -141,7 +141,7 @@ router.post(
         { expiresIn: "10h" }
       );
       console.log("username:", user.username, "token:", token);
-      res.status(200).json({
+      res.json({
         status: 200,
         message: "登入成功",
         data: {
@@ -152,8 +152,8 @@ router.post(
         token: token,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Server error" });
+      console.log(error);
+      res.json({status: 500, message: "Server error" });
     }
   }
 );
