@@ -110,12 +110,12 @@ class PostController {
         "username name img_path role"
       );
       if (!post) {
-        return res.status(404).json({ message: "Post not found" });
+        return res.json({ status: 404, message: "Post not found" });
       }
       let permission = false;
-      const user = await mongoose.model("User").findById(userId);
       //如果找到user
-      if (user) {
+      if (userId) {
+        const user = await mongoose.model("User").findById(userId);
         if (post.user_id._id.toString() === userId || user.role === "admin") {
           permission = true;
         }
