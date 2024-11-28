@@ -31,16 +31,11 @@ class CommentController {
         .limit(parseInt(limit))
         .populate("user_id", "username name img_path name role");
       let userId = req.userId; 
-      
-
       const userCommentStatus = {};
       if (userId) {
         const user = await mongoose.model("User").findById(userId);
-      }
-        // 对每条评论，检查用户是否点赞或点踩
         for (let comment of comments) {
           let permission = false;
-          if (userId) {
             permission = user.role === "admin" || comment.user_id._id.toString() === userId || post.user_id.toString() === userId;
             userCommentStatus[comment._id] = {
               hasLiked: comment.likingUsers?.has(userId) || false,
@@ -48,6 +43,8 @@ class CommentController {
               permission
             }
           }
+      }
+        // 对每条评论，检查用户是否点赞或点踩
           else {
             userCommentStatus[comment._id] = {
               hasLiked: false,
@@ -56,7 +53,6 @@ class CommentController {
             }
 
           };
-        }
 
       // 格式化评论，添加用户状态
       const formattedComments = comments.map(comment => ({
